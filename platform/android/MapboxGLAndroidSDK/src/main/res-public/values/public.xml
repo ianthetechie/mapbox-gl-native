@@ -72,9 +72,6 @@
     <public name="mapbox_uiAttributionMarginRight" type="attr" />
     <public name="mapbox_uiAttributionMarginBottom" type="attr" />
 
-    <!-- Deprecated to use TextureView-->
-    <public name="mapbox_renderTextureMode" type="attr" />
-
     <!-- Exposed content descriptions -->
     <public name="mapbox_logoContentDescription" type="string" />
 

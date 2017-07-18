@@ -215,16 +215,10 @@ public class MapView extends FrameLayout {
     }
   }
 
-  private void initialiseDrawingSurface(boolean textureMode) {
-    if (textureMode) {
-      TextureView textureView = new TextureView(getContext());
-      textureView.setSurfaceTextureListener(new SurfaceTextureListener());
-      addView(textureView, 0);
-    } else {
-      SurfaceView surfaceView = (SurfaceView) findViewById(R.id.surfaceView);
-      surfaceView.getHolder().addCallback(new SurfaceCallback());
-      surfaceView.setVisibility(View.VISIBLE);
-    }
+  private void initialiseDrawingSurface() {
+    SurfaceView surfaceView = (SurfaceView) findViewById(R.id.surfaceView);
+    surfaceView.getHolder().addCallback(new SurfaceCallback());
+    surfaceView.setVisibility(View.VISIBLE);
   }
 
   /**
@@ -554,7 +548,7 @@ public class MapView extends FrameLayout {
       return;
     }
     if (visibility == View.VISIBLE && nativeMapView == null) {
-      initialiseDrawingSurface(mapboxMapOptions.getTextureMode());
+      initialiseDrawingSurface();
     }
 
     if (mapZoomButtonController != null && nativeMapView != null) {
