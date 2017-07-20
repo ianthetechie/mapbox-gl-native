@@ -36,9 +36,10 @@
 namespace mbgl {
 namespace android {
 
+class AndroidRendererBackend;
 class AndroidRendererFrontend;
 
-class NativeMapView : public View, public RendererBackend, public MapObserver {
+class NativeMapView : public MapObserver {
 public:
 
     static constexpr auto Name() { return "com/mapbox/mapboxsdk/maps/NativeMapView"; };
@@ -54,14 +55,6 @@ public:
                   jni::String programCacheDir);
 
     virtual ~NativeMapView();
-
-    // mbgl::View //
-
-    void bind() override;
-
-    // mbgl::RendererBackend //
-
-    void updateAssumedState() override;
 
     // Deprecated //
     void notifyMapChange(mbgl::MapChange);
@@ -259,13 +252,6 @@ public:
 
     jni::jboolean getPrefetchesTiles(JNIEnv&);
 
-protected:
-    // mbgl::RendererBackend //
-
-    gl::ProcAddress initializeExtension(const char*) override;
-    void activate() override;
-    void deactivate() override;
-
 private:
     void _initializeDisplay();
 
@@ -281,12 +267,11 @@ private:
 
     EGLConfig chooseConfig(const EGLConfig configs[], EGLint numConfigs);
 
-    mbgl::Size getFramebufferSize() const;
-
     void updateFps();
 
 private:
     std::unique_ptr<AndroidRendererFrontend> rendererFrontend;
+    std::unique_ptr<AndroidRendererBackend> rendererBackend;
 
     JavaVM *vm = nullptr;
     jni::UniqueWeakObject<NativeMapView> javaPeer;
@@ -318,8 +303,6 @@ private:
     // Minimum texture size according to OpenGL ES 2.0 specification.
     int width = 64;
     int height = 64;
-    int fbWidth = 64;
-    int fbHeight = 64;
 
     bool framebufferSizeChanged = true;
 
