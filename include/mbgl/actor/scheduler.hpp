@@ -33,6 +33,10 @@ class Scheduler {
 public:
     virtual ~Scheduler() = default;
     virtual void schedule(std::weak_ptr<Mailbox>) = 0;
+    
+    // Set/Get the current Scheduler for this thread
+    static Scheduler* GetCurrent();
+    static void SetCurrent(Scheduler*);
 };
 
 } // namespace mbgl
