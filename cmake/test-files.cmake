@@ -63,6 +63,8 @@ set(MBGL_TEST_FILES
     test/src/mbgl/test/stub_style_observer.hpp
     test/src/mbgl/test/stub_tile_observer.hpp
     test/src/mbgl/test/test.cpp
+    test/src/mbgl/test/test_scheduler.cpp
+    test/src/mbgl/test/test_scheduler.hpp
     test/src/mbgl/test/util.cpp
     test/src/mbgl/test/util.hpp
 
