@@ -1,7 +1,47 @@
 #include <mbgl/util/default_thread_pool.hpp>
 #include <mbgl/actor/mailbox.hpp>
+#include <mbgl/actor/message.hpp>
 #include <mbgl/util/platform.hpp>
 #include <mbgl/util/string.hpp>
+
+namespace {
+
+using namespace mbgl;
+
+class ThreadBasedTimer : public Scheduler::Scheduled {
+public:
+    ThreadBasedTimer(Duration timeout, std::weak_ptr<Mailbox> weakMailbox, std::unique_ptr<Message> message)
+    : thread ([&, timeout{std::move(timeout)}, weakMailbox{std::move(weakMailbox)}, message{std::move(message)}]() mutable {
+            platform::setCurrentThreadName("ThreadBasedTimer");
+            std::this_thread::sleep_for(timeout);
+            
+            if (auto mailbox = weakMailbox.lock()) {
+                 mailbox->push(std::move(message));
+            }
+            
+            finished.store(true);
+        }){
+        
+    }
+    
+    ~ThreadBasedTimer() override {
+        thread.join();
+    }
+    
+    void cancel() override {
+         //TODO
+    }
+    
+    bool isFinished() override {
+        return finished;
+    }
+    
+private:
+    std::thread thread;
+    std::atomic<bool> finished { false };
+};
+
+} // namespace
 
 namespace mbgl {
 
@@ -52,6 +92,11 @@ void ThreadPool::schedule(std::weak_ptr<Mailbox> mailbox) {
     }
 
     cv.notify_one();
+}
+    
+    
+std::unique_ptr<Scheduler::Scheduled> ThreadPool::schedule(Duration timeout, std::weak_ptr<Mailbox> mailbox, std::unique_ptr<Message> message) {
+    return std::make_unique<ThreadBasedTimer>(timeout, mailbox, std::move(message));
 }
 
 } // namespace mbgl

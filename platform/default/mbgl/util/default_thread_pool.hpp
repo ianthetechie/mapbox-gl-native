@@ -15,6 +15,8 @@ public:
     ~ThreadPool() override;
 
     void schedule(std::weak_ptr<Mailbox>) override;
+    
+    std::unique_ptr<Scheduled> schedule(Duration, std::weak_ptr<Mailbox>, std::unique_ptr<Message>) override;
 
 private:
     std::vector<std::thread> threads;
