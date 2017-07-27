@@ -68,6 +68,8 @@ public:
             Mailbox::maybeReceive(mailbox);
         });
     }
+                    
+    std::unique_ptr<Scheduled> schedule(Duration, std::weak_ptr<Mailbox>, std::unique_ptr<Message>) override;
 
     class Impl;
 
