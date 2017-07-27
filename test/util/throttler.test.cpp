@@ -48,10 +48,9 @@ TEST(Throttler, Basic) {
 TEST(Throttler, Throttling) {
     // Ensure invocations are throttled
     
-    // Throttler needs a RunLoop
     RunLoop loop;
     
-    static Milliseconds frequency { 300 };
+    static Milliseconds frequency { 100 };
     
     struct Test {
         TimePoint lastInvocation = TimePoint::min();
@@ -69,21 +68,30 @@ TEST(Throttler, Throttling) {
     std::future<void> future = promise.get_future();
     
     int invocations = 0;
-    ThreadPool pool { 2 };
-    Actor<Test> test(pool, invocations);
+    Actor<Test> test(loop, invocations);
     
     Throttler<Test> throttler { test.self(), frequency };
     
-    // Invoke twice in a row
-    throttler.invoke(&Test::doIt);
-    throttler.invoke(&Test::doIt);
-    loop.runOnce(); // Let the timer do it's thing
+    // Invoke three times in a row
+    throttler.invoke(&Test::doIt); // Will be executed immediately
+    throttler.invoke(&Test::doIt); // Will be executed delayed
+    throttler.invoke(&Test::doIt); // Will not be executed as there is a pending execution
+    
+    // Let the actor process it's mailbox do it's thing
+    for (std::size_t i = 0; i < 3; ++i) {
+        loop.runOnce();
+    }
+    
+    // Should only see the initial invocation
     ASSERT_EQ(invocations, 1);
     
-    // Wait until throttle time passed and invoke again
-    std::this_thread::sleep_for (std::chrono::seconds(1));
+    std::this_thread::sleep_for (std::chrono::milliseconds(250));
+    loop.runOnce(); // Process the pending timed execution
+    ASSERT_EQ(invocations, 2);
+    
+    // Another invocation should be executed immediately
     throttler.invoke(&Test::doIt);
     loop.runOnce(); // Let the timer do it's thing
-    ASSERT_EQ(invocations, 2);
+    ASSERT_EQ(invocations, 3);
     
 }
